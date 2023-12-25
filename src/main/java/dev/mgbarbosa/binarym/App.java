@@ -1,21 +1,13 @@
-package Multiplication;
+package dev.mgbarbosa.binarym;
 
 import static java.lang.String.format;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Optional;
 
-/**
- * Main
- * 11011010
- * 11011010
- * 
- * 0110110100
- */
-public class Main {
+class App {
 
     public static void main(final String[] args) {
+
         final var multiplier = "00000011";
         final var multiplicant = "11111101";
 
