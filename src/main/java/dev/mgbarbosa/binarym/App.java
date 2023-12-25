@@ -5,7 +5,6 @@ import static java.lang.String.format;
 import java.util.ArrayDeque;
 
 class App {
-
     public static void main(final String[] args) {
 
         final var multiplier = "00000011";
@@ -22,26 +21,45 @@ class App {
         System.out.println(format("%8s, %s", sixteenBitSum, parsedInt));
     }
 
-    public static String multiply(String multiplicant, String multiplier) {
-        final var biggestStr = Math.max(multiplier.length(), multiplicant.length());
-        multiplicant = format("%" + biggestStr + "s", multiplicant).replace(' ', '0');
-        multiplier = format("%" + biggestStr + "s", multiplier).replace(' ', '0');
+    public static String twosComplement(final String str) {
+        // First, we flip all bits
+        final var arr = str.toCharArray();
+        for (int i = 0; i < str.length(); i++) {
+            arr[i] = str.charAt(i) == '1'
+                    ? '0'
+                    : '1';
+        }
+
+        // Then we add 1 to it.
+        final var flippedStr = new String(arr);
+        final var sum = sum(flippedStr, "001");
+
+        return sum.substring(sum.length() - str.length());
+    }
+
+    private static String normalizeBinary(final String binaryStr, final int size) {
+        return format("%" + size + "s", binaryStr).replace(' ', '0');
+    }
+
+    public static String multiply(final String a, final String b) {
+        final var size = Math.max(a.length(), b.length());
+        final var multiplicant = normalizeBinary(a, size);
+        final var multiplier = normalizeBinary(b, size);
 
         final var partials = new ArrayDeque<String>();
         var shiftCount = 0;
-        for (var multiplierI = multiplier.length() - 1; multiplierI >= 0; multiplierI--) {
-            final var c = multiplicant.charAt(multiplierI);
-            var result = new StringBuilder();
+        for (var i = multiplier.length() - 1; i >= 0; i--) {
+            final var c = multiplicant.charAt(i);
+            final var result = new StringBuilder();
 
-            for (var multiplicantJ = multiplicant.length() - 1; multiplicantJ >= 0; multiplicantJ--) {
-                final var cc = multiplier.charAt(multiplicantJ);
+            for (var j = multiplicant.length() - 1; j >= 0; j--) {
+                final var cc = multiplier.charAt(j);
                 final var mResult = multiply(cc, c);
 
-                result = result.insert(0, mResult);
+                result.insert(0, mResult);
             }
 
-            final var binary = result.toString() + "0".repeat(shiftCount);
-            partials.add(binary);
+            partials.add(format("%s%s", result.toString(), "0".repeat(shiftCount)));
             shiftCount += 1;
         }
 
@@ -50,20 +68,20 @@ class App {
             sum = sum(sum, partials.pop());
         }
 
-        return sum.substring(sum.length() - biggestStr);
+        return sum.substring(sum.length() - size); // truncate string to initial bit size.
     }
 
-    public static String sum(String a, String b) {
+    public static String sum(final String a, final String b) {
         final var result = new StringBuilder();
         final var biggestStr = Math.max(a.length(), b.length());
 
-        a = format("%" + biggestStr + "s", a).replace(' ', '0');
-        b = format("%" + biggestStr + "s", b).replace(' ', '0');
+        final var aF = normalizeBinary(a, biggestStr);
+        final var bF = normalizeBinary(b, biggestStr);
 
         boolean carry = false;
-        for (int i = a.length() - 1; i >= 0; i--) {
-            final var numA = a.charAt(i);
-            final var numB = b.charAt(i);
+        for (int i = aF.length() - 1; i >= 0; i--) {
+            final var numA = aF.charAt(i);
+            final var numB = bF.charAt(i);
 
             final var sumResult = sum(numA, numB, carry);
 
@@ -84,10 +102,18 @@ class App {
         }
 
         if ((a == '0' && b == '1') || (a == '1' && b == '0')) {
-            return new SumResult(carry ? '0': '1', carry);
+            return new SumResult(carry ? '0' : '1', carry);
         }
 
         return new SumResult(carry ? '1' : '0', true);
+    }
+
+    public static char multiply(final char a, final char b) {
+        if (a == '0' || b == '0') {
+            return '0';
+        }
+
+        return '1';
     }
 
     static class SumResult {
@@ -98,13 +124,5 @@ class App {
             this.result = result;
             this.carry = carry;
         }
-    }
-
-    public static char multiply(final char a, final char b) {
-        if (a == '0' || b == '0') {
-            return '0';
-        }
-
-        return '1';
     }
 }

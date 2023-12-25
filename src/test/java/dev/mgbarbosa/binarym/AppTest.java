@@ -4,11 +4,55 @@
 package dev.mgbarbosa.binarym;
 
 import org.junit.Test;
+
+import static java.lang.String.format;
 import static org.junit.Assert.*;
 
+import java.util.Random;
+
 public class AppTest {
-    @Test public void appHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull("app should have a greeting", classUnderTest.getGreeting());
+
+    @Test
+    public void shouldBeAbleToParseTwosComplement() {
+        // Arrange
+        final var random = new Random();
+        final var number = (short) random.nextInt(0, 10000);
+        final var expectedNumber = number * -1; // >= 0 numbers doesnt need the twos complement.
+
+        // Act
+        final var numberStr = Integer.toBinaryString(number & 0xFFFF);
+        final var twosComplement = App.twosComplement(numberStr); // Parses to Two's complement
+        final var formattedTwosComplement = format("%16s", twosComplement).replace(' ', '1');
+
+        final var result = (short) Integer.parseInt(formattedTwosComplement, 2);
+
+        // Assert
+        assertEquals(expectedNumber, result);
+    }
+
+    @Test
+    public void shouldMultiplyCorrectlyWithTwosComplement() {
+        // Arrange
+        final var random = new Random();
+        final var multiplier = random.nextInt();
+        final var multiplicant = random.nextInt();
+        final var expectedNumber = multiplier * multiplicant;
+
+        final var formattedMultiplier = formatNumber(multiplier);
+        final var formatterMultiplicant = formatNumber(multiplicant);
+
+        // Act
+        final var result = App.multiply(formattedMultiplier, formatterMultiplicant);
+        final var msb = (expectedNumber < 0) ? '1' : '0';
+        final var thirdTwoBitStr = format("%32s", result).replace(' ', msb);
+
+        final var numResult = (int) Long.parseLong(thirdTwoBitStr, 2);
+
+        // Assert
+        assertEquals(expectedNumber, numResult);
+    }
+
+    private String formatNumber(Integer number) {
+        return Integer.toBinaryString(number & 0xFFFFFFFF);
     }
 }
